@@ -13,15 +13,32 @@ const form = document.querySelector('.search-form');
 const gallery = document.querySelector('.gallery');
 const loadMoreBtn = document.querySelector('.load-more');
 
+const perPage = 40;
+
+form.addEventListener('submit', handleFormSubmit);
+loadMoreBtn.addEventListener('click', handleLoadMore)
+
 async function serviceImg(query, page = 1) {
   try {
      const response = await axios.get(API_URL);
-  return response;
+  return response.data.hits;
   }
   catch (error) {
     console.error(error);
     Notiflix.Notify.failure('Error');
+    return [];
 
   }
   
 }
+
+async function handleLoadMore(e) {
+  e.preventDefault();
+  page = 1;
+  gallery.innerHTML = '';
+  searchQuery = e.currentTarget.elements.searchQuery.value.trim();
+  if (searchQuery === '') {
+    Notiflix.Notify.warning('')
+  }
+}
+
