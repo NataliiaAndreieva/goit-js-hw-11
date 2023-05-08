@@ -1,7 +1,9 @@
-import { gallery } from './common';
+const gallery = document.querySelector('.gallery');
 
 function createMarkupCard(images) {
-    return images.map(({
+  return images
+    .map(
+      ({
         webformatURL,
         largeImageURL,
         tags,
@@ -9,8 +11,7 @@ function createMarkupCard(images) {
         views,
         comments,
         downloads,
-    }) => {
-        return
+      }) => {
         `
     <div class="photo-card">
     <a href="${largeImageURL}">
@@ -32,11 +33,11 @@ function createMarkupCard(images) {
       </div>
     </div >
      `;
-    }
+      }
     )
-        .join('');
-    gallery.insertAdjacentHTML('beforeend', createMarkupCard(images));
-
+    .join('');
+  
 }
+ gallery.insertAdjacentHTML('beforeend', createMarkupCard(images));
 
 export { createMarkupCard };
