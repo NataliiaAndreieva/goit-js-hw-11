@@ -3,74 +3,54 @@ import './css/styles.css';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 import { fetchImages } from './js/fetchImage';
-// import { createMarkupCard } from './js/markup';
+import { createMarkupCard } from './js/markup';
 
-const perPage = 40;
-let searchQuery = '';
-let page = 1;
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
-const form = document.querySelector('.search-form');
+const searchForm = document.querySelector('.search-form');
 const gallery = document.querySelector('.gallery');
 const loadMoreBtn = document.querySelector('.load-more');
+let query = '';
+let page = 1;
+let simpleLightBox;
+const perPage = 40;
 
-form.addEventListener('submit', onSubmit);
-loadMoreBtn.addEventListener('click', onLoadButton);
+searchForm.addEventListener('submit', onSearchForm);
+loadMoreBtn.addEventListener('click', onLoadMore);
 
-
-function onSubmit(e) {
+function onSearchForm(e) {
   e.preventDefault();
-
-  searchQuery = e.currentTarget.searchQuery.value.trim();
+  window.scrollTo({ top: 0 });
+  page = 1;
+  query = e.currentTarget.searchQuery.value.trim();
   gallery.innerHTML = '';
-  loadMoreBtn.classList.add('is-hidden');
+  loadMoreBtn.classList.add('load-more-isHidden');
 
-  if (searchQuery === '') {
+  if (query === '') {
     alertNoEmptySearch();
     return;
   }
 
-  fetchImages(searchQuery, page, perPage)
+  fetchImages(query, page, perPage)
     .then(({ data }) => {
       if (data.totalHits === 0) {
-        alertNotFound();
+        alertNoImagesFound();
       } else {
-        gallery.insertAdjacentHTML('beforeend', createMarkupCard(data.hits));
-        alertImgFound(data);
-      }
-      if (data.totalHits > perPage) {
-        loadMoreBtn.classList.remove('is-hidden');
-      }
-    })
-    .catch(error => console.log(error))
-    .finally(() => {
-      form.reset();
-    });
-}
+        createMarkupCard(data.hits);
+        simpleLightBox = new SimpleLightbox('.gallery a').refresh();
+        alertImagesFound(data);
 
-function onLoadButton(e) {
-  page += 1;
-
-  fetchImages(searchQuery, page, perPage)
-    .then(({ data }) => {
-      gallery.insertAdjacentHTML('beforeend', createMarkupCard(data.hits));
-      const totalPages = Math.ceil(data.totalHits / perPage);
-
-      if (page > totalPages) {
-        loadMoreBtn.classList.add('is-hidden');
-        alertEndOfSearch();
+        if (data.totalHits > perPage) {
+          loadMoreBtn.classList.remove('load-more-isHidden');
+        }
       }
     })
     .catch(error => console.log(error));
 }
 
-function alertImgFound(data) {
-  Notify.success(`${data.totalHits} images found.`);
-}
-
-function alertNotFound() {
-  Notify.failure(
-    'Sorry, there are no images matching your search query. Please try again.'
-  );
+function alertImagesFound(data) {
+  Notify.success(`Hooray! We found ${data.totalHits} images.`);
 }
 
 function alertNoEmptySearch() {
@@ -79,52 +59,37 @@ function alertNoEmptySearch() {
   );
 }
 
-function alertEndOfSearch() {
+function alertNoImagesFound() {
   Notify.failure(
-    "We're sorry, but you've reached the end of search results."
+    'Sorry, there are no images matching your search query. Please try again.'
   );
 }
 
-
-function createMarkupCard(images) {
-  return images
-    .map(
-      ({
-        webformatURL,
-        largeImageURL,
-        tags,
-        likes,
-        views,
-        comments,
-        downloads,
-      }) => {
-       return `
-    <div class="photo-card">
-    <a href="${largeImageURL}">
-      <img src="${webformatURL}" alt="${tags}" loading="lazy" />
-        </a>
-      <div class="info">
-        <p class="info-item">
-          <b>Likes:<span>${likes}</span></b>
-        </p>
-        <p class="info-item">
-          <b>Views:<span>${views}</span></b>
-        </p>
-        <p class="info-item">
-          <b>Comments:<span>${comments}</span></b>
-        </p>
-        <p class="info-item">
-          <b>Downloads:<span>${downloads}</span></b>
-        </p>
-      </div>
-    </div >
-     `;
+function onLoadMore() {
+  loadMoreBtn.classList.add('load-more-isHidden');
+  page += 1;
+  fetchImages(query, page, perPage)
+    .then(({ data }) => {
+      if (data.hits.length === 0) {
+        Notify.failure(
+          "We're sorry, but you've reached the end of search results."
+        );
+        return;
       }
-    )
-    .join('');
-  
+
+      createMarkupCard(data.hits);
+      simpleLightBox.refresh();
+      loadMoreBtn.classList.remove('load-more-isHidden');
+    })
+    .catch(error => console.log(error));
 }
-// gallery.insertAdjacentHTML('beforeend', createMarkupCard(images));
 
+window.addEventListener('scroll', () => {
+  const scrollY = window.scrollY;
+  const viewportHeight = window.innerHeight;
+  const fullHeight = document.body.offsetHeight;
 
-
+  if (scrollY + viewportHeight >= fullHeight) {
+    onLoadMore();
+  }
+});
