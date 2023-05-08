@@ -36,8 +36,8 @@ function createMarkupCard(images) {
       }
     )
     .join('');
-  
+   
 }
- gallery.insertAdjacentHTML('beforeend', createMarkupCard(images));
+  gallery.insertAdjacentHTML('beforeend', createMarkupCard(images));
 
 export { createMarkupCard };

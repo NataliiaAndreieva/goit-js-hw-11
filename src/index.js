@@ -3,17 +3,11 @@ import './css/styles.css';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 import { fetchImages } from './js/fetchImage';
-import { createMarkupCard } from './js/markup';
+// import { createMarkupCard } from './js/markup';
 
 const perPage = 40;
 let searchQuery = '';
 let page = 1;
-
-// const API_KEY = '36047185-510fc5005b993828af62621e5';
-// // const BASE_URL = 'https://pixabay.com/api/';
-// const API_URL = `https://pixabay.com/api/?key=${API_KEY}&q=${searchQuery}&image_type=photo&orientation=horizontal&safesearch=true&per_page=${perPage}&page=${page}`;
-
-// // const API_URL = `${BASE_URL}?key=${API_KEY}&q=${images}&image_type=photo&orientation=horizontal&safesearch=true&per_page=40&page=${page}`;
 
 const form = document.querySelector('.search-form');
 const gallery = document.querySelector('.gallery');
@@ -21,7 +15,6 @@ const loadMoreBtn = document.querySelector('.load-more');
 
 form.addEventListener('submit', onSubmit);
 loadMoreBtn.addEventListener('click', onLoadButton);
-
 
 
 function onSubmit(e) {
@@ -63,7 +56,7 @@ function onLoadButton(e) {
       const totalPages = Math.ceil(data.totalHits / perPage);
 
       if (page > totalPages) {
-        onLoadButton.classList.add('is-hidden');
+        loadMoreBtn.classList.add('is-hidden');
         alertEndOfSearch();
       }
     })
@@ -92,15 +85,46 @@ function alertEndOfSearch() {
   );
 }
 
-// const modalWindow = function () {
-//   const lightbox = new SimpleLightbox('.gallery a', {
-//     captionsData: 'alt',
-//     captionDelay: 300,
-//   });
-//   return lightbox;
-// };
 
-
+function createMarkupCard(images) {
+  return images
+    .map(
+      ({
+        webformatURL,
+        largeImageURL,
+        tags,
+        likes,
+        views,
+        comments,
+        downloads,
+      }) => {
+       return `
+    <div class="photo-card">
+    <a href="${largeImageURL}">
+      <img src="${webformatURL}" alt="${tags}" loading="lazy" />
+        </a>
+      <div class="info">
+        <p class="info-item">
+          <b>Likes:<span>${likes}</span></b>
+        </p>
+        <p class="info-item">
+          <b>Views:<span>${views}</span></b>
+        </p>
+        <p class="info-item">
+          <b>Comments:<span>${comments}</span></b>
+        </p>
+        <p class="info-item">
+          <b>Downloads:<span>${downloads}</span></b>
+        </p>
+      </div>
+    </div >
+     `;
+      }
+    )
+    .join('');
+  
+}
+// gallery.insertAdjacentHTML('beforeend', createMarkupCard(images));
 
 
 
